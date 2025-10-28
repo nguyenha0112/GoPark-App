@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Thay bằng IP LAN máy bạn
-export const BASE_URL = "http://192.168.2.17:5000"; // ví dụ: 192.168.2.17
+export const BASE_URL = "http://192.168.2.17:5000"; // ví dụ: 192.168.2.17   cấp phát động *********
 
 // Helper fetch có JWT
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
@@ -36,4 +36,33 @@ export async function loginUser(email: string, password: string) {
   }
 
   return res.json();
+}
+
+// Đăng ký
+export async function registerUser(
+  name: string,
+  email: string,
+  phone: string,
+  password: string,
+  confirmPassword: string
+) {
+  const res = await fetch(`${BASE_URL}/api/v1/users/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userName: name, // ✅ backend dùng userName
+      email,
+      phoneNumber: phone, // ✅ backend dùng phoneNumber
+      password,
+      passwordConfirm: confirmPassword, // ✅ backend yêu cầu trường này
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Đăng ký thất bại");
+  }
+
+  return data; // Trả về user + token (tùy backend)
 }
