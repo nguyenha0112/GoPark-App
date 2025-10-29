@@ -8,7 +8,7 @@ export default function Login() {
 
   const handleLoginSuccess = (role: UserRole, username: string) => {
     if (role === "user") router.replace("/(tabs)/home" as any);
-    else if (role === "owner") router.replace("/(owner)/dashboard" as any);
+    else if (role === "owner") router.replace("/(owner)/management" as any);
   };
 
   return (
