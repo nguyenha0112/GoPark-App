@@ -1,11 +1,20 @@
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import {
+  Car,
+  CheckCircle,
+  Clock,
+  Edit3,
+  LogOut,
+  MapPin,
+  Plus,
+  Trash2,
+} from "lucide-react-native";
 import React from "react";
 import {
   Alert,
   FlatList,
-  StyleSheet,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -37,7 +46,6 @@ export const MyParkingLotsScreen: React.FC<MyParkingLotsScreenProps> = ({
 }) => {
   const router = useRouter();
 
-  // 👉 Sự kiện đăng xuất
   const handleLogout = async () => {
     Alert.alert("Xác nhận", "Bạn có chắc chắn muốn đăng xuất?", [
       { text: "Hủy", style: "cancel" },
@@ -47,8 +55,8 @@ export const MyParkingLotsScreen: React.FC<MyParkingLotsScreenProps> = ({
         onPress: async () => {
           try {
             await AsyncStorage.removeItem("token");
-            await AsyncStorage.removeItem("user"); // nếu bạn có lưu user info
-            router.replace("/login"); // quay lại màn hình đăng nhập
+            await AsyncStorage.removeItem("user");
+            router.replace("/login");
           } catch (error) {
             console.error("Lỗi khi đăng xuất:", error);
           }
@@ -57,104 +65,158 @@ export const MyParkingLotsScreen: React.FC<MyParkingLotsScreenProps> = ({
     ]);
   };
 
-  const renderItem = ({ item }: { item: ParkingLot }) => (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      style={styles.card}
-      onPress={() => onSelectParkingLot(item.id)}
-    >
-      <View style={styles.headerRow}>
-        <Text style={styles.name}>{item.name}</Text>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor: item.status === "active" ? "#E9FCEB" : "#FFF6E6",
-            },
-          ]}
-        >
-          <Ionicons
-            name={
-              item.status === "active" ? "checkmark-circle" : "time-outline"
-            }
-            size={14}
-            color={item.status === "active" ? "#16a34a" : "#f59e0b"}
-          />
-          <Text
-            style={[
-              styles.statusText,
-              {
-                color: item.status === "active" ? "#166534" : "#92400E",
-              },
-            ]}
+  const renderItem = ({ item }: { item: ParkingLot }) => {
+    const occupancyRate = (item.occupiedSlots / item.totalSlots) * 100;
+    const isNearFull = occupancyRate >= 80;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        className="bg-white rounded-2xl p-4 mb-3 border border-gray-100"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 2,
+        }}
+        onPress={() => onSelectParkingLot(item.id)}
+      >
+        {/* Header Row */}
+        <View className="flex-row justify-between items-start mb-3">
+          <View className="flex-1 mr-3">
+            <Text className="text-base font-bold text-gray-900 mb-1">
+              {item.name}
+            </Text>
+            <View className="flex-row items-center">
+              <MapPin size={14} color="#6B7280" />
+              <Text
+                className="text-sm text-gray-600 ml-1 flex-1"
+                numberOfLines={1}
+              >
+                {item.address}
+              </Text>
+            </View>
+          </View>
+
+          {/* Status Badge */}
+          <View
+            className={`flex-row items-center px-3 py-1.5 rounded-full ${
+              item.status === "active" ? "bg-green-50" : "bg-amber-50"
+            }`}
           >
-            {item.status === "active" ? "Hoạt động" : "Chờ duyệt"}
+            {item.status === "active" ? (
+              <CheckCircle size={14} color="#16A34A" />
+            ) : (
+              <Clock size={14} color="#F59E0B" />
+            )}
+            <Text
+              className={`text-xs font-semibold ml-1 ${
+                item.status === "active" ? "text-green-700" : "text-amber-700"
+              }`}
+            >
+              {item.status === "active" ? "Hoạt động" : "Chờ duyệt"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Slots Info */}
+        <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-row items-center">
+            <Car size={16} color="#3B82F6" />
+            <Text className="text-sm font-semibold text-gray-900 ml-2">
+              {item.occupiedSlots}/{item.totalSlots} chỗ
+            </Text>
+          </View>
+
+          {/* Occupancy Bar */}
+          <View className="flex-1 ml-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <View
+              className={`h-full rounded-full ${
+                isNearFull ? "bg-red-500" : "bg-blue-500"
+              }`}
+              style={{ width: `${occupancyRate}%` }}
+            />
+          </View>
+          <Text className="text-xs font-medium text-gray-500 ml-2">
+            {Math.round(occupancyRate)}%
           </Text>
+        </View>
+
+        {/* Action Buttons */}
+        <View className="flex-row justify-end gap-4 pt-3 border-t border-gray-100">
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() => onEditParkingLot?.(item.id)}
+          >
+            <Edit3 size={16} color="#3B82F6" />
+            <Text className="text-sm font-semibold text-blue-600 ml-1.5">
+              Sửa
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() =>
+              Alert.alert("Xác nhận", "Xóa bãi đỗ này?", [
+                { text: "Hủy", style: "cancel" },
+                {
+                  text: "Xóa",
+                  style: "destructive",
+                  onPress: () => onDeleteParkingLot?.(item.id),
+                },
+              ])
+            }
+          >
+            <Trash2 size={16} color="#EF4444" />
+            <Text className="text-sm font-semibold text-red-600 ml-1.5">
+              Xóa
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header */}
+      <View className="bg-blue-600 pt-12 pb-4 px-6 border-b border-gray-100">
+        <View className="flex-row justify-between items-center">
+          <View>
+            <Text className="text-2xl font-bold text-gray-900">
+              Bãi đỗ của tôi
+            </Text>
+            <Text className="text-m text-black font-bold mt-0.5">
+              {parkingLots.length} bãi đỗ
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="flex-row items-center bg-red-50 px-3 py-2 rounded-xl"
+            activeOpacity={0.7}
+          >
+            <LogOut size={18} color="#EF4444" />
+            <Text className="text-sm font-semibold text-red-600 ml-2">
+              Đăng xuất
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      <Text style={styles.address}>
-        <Ionicons name="location-outline" size={14} color="#6b7280" />{" "}
-        {item.address}
-      </Text>
-
-      <View style={styles.slotInfo}>
-        <Ionicons name="car-outline" size={14} color="#1f2937" />
-        <Text style={styles.slots}>
-          {" "}
-          {item.occupiedSlots}/{item.totalSlots} chỗ
-        </Text>
-      </View>
-
-      <View style={styles.actionRow}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => onEditParkingLot?.(item.id)}
-        >
-          <Ionicons name="create-outline" size={18} color="#2563eb" />
-          <Text style={[styles.iconText, { color: "#2563eb" }]}>Sửa</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() =>
-            Alert.alert("Xác nhận", "Xóa bãi đỗ này?", [
-              { text: "Hủy", style: "cancel" },
-              {
-                text: "Xóa",
-                style: "destructive",
-                onPress: () => onDeleteParkingLot?.(item.id),
-              },
-            ])
-          }
-        >
-          <Ionicons name="trash-outline" size={18} color="#dc2626" />
-          <Text style={[styles.iconText, { color: "#dc2626" }]}>Xóa</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bãi đỗ của tôi</Text>
-
-        <TouchableOpacity
-          onPress={handleLogout}
-          style={styles.logoutButton}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="log-out-outline" size={18} color="#7c3aed" />
-          <Text style={styles.logoutText}>Đăng xuất</Text>
-        </TouchableOpacity>
-      </View>
-
+      {/* Content */}
       {parkingLots.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Ionicons name="car-sport-outline" size={60} color="#9ca3af" />
-          <Text style={styles.emptyText}>
+        <View className="flex-1 items-center justify-center px-6">
+          <View className="w-24 h-24 bg-gray-100 rounded-full items-center justify-center mb-4">
+            <Car size={48} color="#9CA3AF" strokeWidth={1.5} />
+          </View>
+          <Text className="text-lg font-bold text-gray-900 mb-2">
+            Chưa có bãi đỗ
+          </Text>
+          <Text className="text-sm text-gray-500 text-center">
             Bạn chưa có bãi đỗ nào.{"\n"}Hãy thêm bãi đỗ đầu tiên!
           </Text>
         </View>
@@ -164,102 +226,25 @@ export const MyParkingLotsScreen: React.FC<MyParkingLotsScreenProps> = ({
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerClassName="p-6 pb-24"
         />
       )}
 
-      {/* Nút thêm mới */}
+      {/* Floating Add Button */}
       <TouchableOpacity
-        style={styles.addButton}
-        activeOpacity={0.85}
+        className="absolute bottom-6 right-6 w-16 h-16 bg-blue-600 rounded-2xl items-center justify-center"
+        style={{
+          shadowColor: "#2563EB",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+        activeOpacity={0.8}
         onPress={onAddParkingLot}
       >
-        <Ionicons name="add" size={26} color="#fff" />
+        <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
       </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb", paddingHorizontal: 16 },
-  header: {
-    paddingVertical: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#1e1b4b" },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f4f3ff",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  logoutText: {
-    color: "#7c3aed",
-    fontWeight: "600",
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  name: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    gap: 4,
-  },
-  statusText: { fontSize: 13, fontWeight: "600" },
-  address: { fontSize: 14, color: "#6b7280", marginBottom: 4 },
-  slotInfo: { flexDirection: "row", alignItems: "center", marginTop: 2 },
-  slots: { fontSize: 14, color: "#1f2937" },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 10,
-    gap: 22,
-  },
-  iconButton: { flexDirection: "row", alignItems: "center" },
-  iconText: { fontSize: 13, marginLeft: 4, fontWeight: "500" },
-  addButton: {
-    position: "absolute",
-    bottom: 25,
-    right: 25,
-    backgroundColor: "#7c3aed",
-    borderRadius: 30,
-    width: 60,
-    height: 60,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  emptyBox: { marginTop: 120, alignItems: "center", gap: 10 },
-  emptyText: {
-    fontSize: 15,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-});
