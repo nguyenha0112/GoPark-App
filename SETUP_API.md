@@ -25,7 +25,7 @@ Mở file `.env` và điều chỉnh `API_BASE_URL` theo môi trường test:
 
 ```env
 # Android Emulator
-API_BASE_URL=http://10.0.2.2:5000
+API_BASE_URL=http://10.0.2.2:5000 anh em dô đổi địa chỉ chạy :v
 
 # iOS Simulator  
 API_BASE_URL=http://localhost:5000

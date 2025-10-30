@@ -2,17 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, Alert } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { MapPin } from 'lucide-react-native';
-
-interface ParkingLot {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  availableSpots: number;
-  totalSpots: number;
-  pricePerHour: number;
-}
+import type { ParkingLot } from '@/lib/parkingLot.api';
 
 interface ParkingMapViewProps {
   parkingLots: ParkingLot[];
@@ -46,6 +36,11 @@ export default function ParkingMapView({
     }
   }, [userLocation]);
 
+  // Calculate total slots for marker label
+  const getTotalSlots = (zones: Array<{ zone: string; count: number }>) => {
+    return zones.reduce((total, zone) => total + zone.count, 0);
+  };
+
   return (
     <View className="flex-1 rounded-2xl overflow-hidden">
       <MapView
@@ -61,14 +56,14 @@ export default function ParkingMapView({
       >
         {parkingLots.map((lot) => (
           <Marker
-            key={lot.id}
+            key={lot._id}
             coordinate={{
-              latitude: lot.latitude,
-              longitude: lot.longitude,
+              latitude: lot.location.coordinates[1],  // latitude
+              longitude: lot.location.coordinates[0], // longitude
             }}
             onPress={() => onMarkerPress(lot)}
             title={lot.name}
-            description={`${lot.availableSpots}/${lot.totalSpots} chỗ trống`}
+            description={`${getTotalSlots(lot.zones)} chỗ đỗ • ${lot.pricePerHour.toLocaleString('vi-VN')}đ/giờ`}
           >
             <View className="bg-purple-600 rounded-full p-2 shadow-lg">
               <MapPin size={24} color="#FFF" />
