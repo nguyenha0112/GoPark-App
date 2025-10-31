@@ -25,10 +25,8 @@ const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://192.168.
 interface Vehicle {
   _id: string;
   licensePlate: string;
-  vehicleType: string;
-  brand?: string;
-  model?: string;
-  color?: string;
+  capacity: number;
+  imageVehicle?: string;
 }
 
 export default function BookingStep2() {
@@ -62,7 +60,7 @@ export default function BookingStep2() {
     const loadVehicles = async () => {
       try {
         setLoading(true);
-        const token = await AsyncStorage.getItem('authToken');
+        const token = await AsyncStorage.getItem('token');
 
         if (!token) {
           Alert.alert('Lỗi', 'Vui lòng đăng nhập để tiếp tục');
@@ -70,7 +68,7 @@ export default function BookingStep2() {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/users/profile/vehicles`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/vehicles/my-vehicles`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -82,13 +80,14 @@ export default function BookingStep2() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Vehicles loaded:', data);
-        setVehicles(data.data || []);
+        const result = await response.json();
+        console.log('Vehicles response:', result);
+        const vehiclesData = result.data || result || [];
+        setVehicles(vehiclesData);
 
         // tự động chọn xe đầu tiên nếu có
-        if (data.data && data.data.length > 0) {
-          setSelectedVehicle(data.data[0]);
+        if (vehiclesData && vehiclesData.length > 0) {
+          setSelectedVehicle(vehiclesData[0]);
         }
       } catch (error) {
         console.error('Error loading vehicles:', error);
@@ -142,7 +141,7 @@ export default function BookingStep2() {
         estimatedPrice,
         vehicleId: selectedVehicle._id,
         licensePlate: selectedVehicle.licensePlate,
-        vehicleType: selectedVehicle.vehicleType,
+        vehicleCapacity: selectedVehicle.capacity,
       },
     } as any);
   };
@@ -157,9 +156,7 @@ export default function BookingStep2() {
         {
           text: 'Đồng ý',
           onPress: () => {
-            // TODO: Navigate to add vehicle page
-            // For now, just show a message
-            Alert.alert('Thông báo', 'Tính năng đang phát triển');
+            router.push('/vehicles');
           },
         },
       ]
@@ -178,17 +175,21 @@ export default function BookingStep2() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-gradient-to-r from-purple-600 to-blue-600 pt-12 pb-6 px-4">
+      <View className="bg-white pt-12 pb-6 px-4 border-b border-gray-200">
         <View className="flex-row items-center mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-white/20 rounded-full p-2 mr-3"
+            className="bg-gray-100 rounded-full p-2 mr-3"
           >
-            <ArrowLeft size={24} color="#FFF" />
+            <ArrowLeft size={24} color="#000" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-white font-bold text-xl">Đặt chỗ - Bước 2/3</Text>
-            <Text className="text-white/80 text-sm">Chọn xe & xác nhận</Text>
+            <View className="flex-row items-center mb-1">
+              <View className="bg-black rounded px-2 py-1 mr-2">
+                <Text className="text-white font-bold text-xs">BƯỚC 2/3</Text>
+              </View>
+            </View>
+            <Text className="text-gray-900 font-bold text-xl">Chọn xe & xác nhận</Text>
           </View>
         </View>
       </View>
@@ -202,19 +203,19 @@ export default function BookingStep2() {
 
           {/* Parking lot info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <MapPin size={20} color="#8B5CF6" />
+            <MapPin size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Bãi đỗ xe</Text>
-              <Text className="text-gray-800 font-semibold">{parkingLotName}</Text>
+              <Text className="text-gray-900 font-semibold">{parkingLotName}</Text>
             </View>
           </View>
 
           {/* Slot info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <ParkingSquare size={20} color="#8B5CF6" />
+            <ParkingSquare size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Chỗ đỗ</Text>
-              <Text className="text-gray-800 font-semibold">
+              <Text className="text-gray-900 font-semibold">
                 {slotNumber} - {zoneName}
               </Text>
             </View>
@@ -222,27 +223,27 @@ export default function BookingStep2() {
 
           {/* Time info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <Calendar size={20} color="#8B5CF6" />
+            <Calendar size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Thời gian bắt đầu</Text>
-              <Text className="text-gray-800 font-semibold">{formatDateTime(startTime)}</Text>
+              <Text className="text-gray-900 font-semibold">{formatDateTime(startTime)}</Text>
             </View>
           </View>
 
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <Clock size={20} color="#8B5CF6" />
+            <Clock size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Thời gian kết thúc</Text>
-              <Text className="text-gray-800 font-semibold">{formatDateTime(endTime)}</Text>
+              <Text className="text-gray-900 font-semibold">{formatDateTime(endTime)}</Text>
             </View>
           </View>
 
           {/* Price info */}
           <View className="flex-row items-start">
-            <DollarSign size={20} color="#8B5CF6" />
+            <DollarSign size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Tổng tiền ({getDuration()} giờ)</Text>
-              <Text className="text-purple-600 font-bold text-xl">
+              <Text className="text-gray-900 font-bold text-xl">
                 {parseInt(estimatedPrice).toLocaleString('vi-VN')}đ
               </Text>
             </View>
@@ -279,43 +280,43 @@ export default function BookingStep2() {
               <TouchableOpacity
                 key={vehicle._id}
                 onPress={() => setSelectedVehicle(vehicle)}
-                className={`mb-3 p-4 rounded-xl border-2 flex-row items-center ${
+                className={`mb-3 p-4 rounded-lg border-2 flex-row items-center ${
                   selectedVehicle?._id === vehicle._id
-                    ? 'bg-purple-50 border-purple-600'
-                    : 'bg-gray-50 border-gray-200'
+                    ? 'bg-green-50 border-green-400'
+                    : 'bg-white border-gray-300'
                 }`}
               >
                 <View
                   className={`rounded-full p-3 ${
-                    selectedVehicle?._id === vehicle._id ? 'bg-purple-600' : 'bg-gray-300'
+                    selectedVehicle?._id === vehicle._id ? 'bg-green-400' : 'bg-gray-200'
                   }`}
                 >
                   <Car
                     size={24}
-                    color={selectedVehicle?._id === vehicle._id ? '#FFF' : '#6B7280'}
+                    color={selectedVehicle?._id === vehicle._id ? '#FFF' : '#000'}
                   />
                 </View>
 
                 <View className="flex-1 ml-4">
                   <Text
                     className={`font-bold text-lg ${
-                      selectedVehicle?._id === vehicle._id ? 'text-purple-700' : 'text-gray-800'
+                      selectedVehicle?._id === vehicle._id ? 'text-green-700' : 'text-gray-900'
                     }`}
                   >
                     {vehicle.licensePlate}
                   </Text>
                   <Text className="text-gray-500 text-sm">
-                    {vehicle.brand && vehicle.model
-                      ? `${vehicle.brand} ${vehicle.model}`
-                      : vehicle.vehicleType}
+                    Sức chứa: {vehicle.capacity} chỗ
                   </Text>
-                  {vehicle.color && (
-                    <Text className="text-gray-400 text-xs mt-1">Màu: {vehicle.color}</Text>
+                  {vehicle.imageVehicle && (
+                    <Text className="text-gray-400 text-xs mt-1" numberOfLines={1}>
+                      Có ảnh
+                    </Text>
                   )}
                 </View>
 
                 {selectedVehicle?._id === vehicle._id && (
-                  <View className="bg-purple-600 rounded-full p-1">
+                  <View className="bg-green-400 rounded-full p-1">
                     <Text className="text-white text-xs font-bold px-2">✓</Text>
                   </View>
                 )}
@@ -340,9 +341,9 @@ export default function BookingStep2() {
         <TouchableOpacity
           onPress={handleNext}
           disabled={!selectedVehicle}
-          className={`rounded-2xl py-4 px-6 ${
+          className={`rounded-lg py-4 px-6 ${
             selectedVehicle
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600'
+              ? 'bg-black'
               : 'bg-gray-300'
           }`}
           activeOpacity={0.8}

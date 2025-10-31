@@ -58,7 +58,7 @@ export default function ParkingDetailPage() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 bg-white items-center justify-center">
-          <ActivityIndicator size="large" color="#9333EA" />
+          <ActivityIndicator size="large" color="#22c55e" />
           <Text className="text-gray-600 mt-4">Đang tải thông tin...</Text>
         </View>
       </>
@@ -75,7 +75,7 @@ export default function ParkingDetailPage() {
           </Text>
           <TouchableOpacity
             onPress={loadParkingLotDetail}
-            className="bg-purple-600 px-6 py-3 rounded-lg"
+            className="bg-green-500 px-6 py-3 rounded-lg"
           >
             <Text className="text-white font-semibold">Thử lại</Text>
           </TouchableOpacity>
@@ -83,7 +83,7 @@ export default function ParkingDetailPage() {
             onPress={() => router.back()}
             className="mt-3"
           >
-            <Text className="text-blue-600">Quay lại</Text>
+            <Text className="text-green-600">Quay lại</Text>
           </TouchableOpacity>
         </View>
       </>
@@ -122,11 +122,10 @@ export default function ParkingDetailPage() {
         <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
           <TouchableOpacity
             onPress={handleBooking}
-            className="bg-purple-600 rounded-2xl py-4 px-6 flex-row items-center justify-center shadow-md"
+            className="bg-black rounded-xl py-4 px-6 flex-row items-center justify-center"
             activeOpacity={0.8}
           >
-            <Text className="text-white font-bold text-lg mr-2">Đặt chỗ ngay</Text>
-            <Text className="text-white text-lg">→</Text>
+            <Text className="text-white font-bold text-lg">Đặt chỗ ngay</Text>
           </TouchableOpacity>
           <Text className="text-center text-gray-500 text-xs mt-2">
             Đảm bảo có chỗ đỗ khi bạn đến

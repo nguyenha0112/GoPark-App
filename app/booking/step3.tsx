@@ -84,7 +84,7 @@ export default function BookingStep3() {
   const handleConfirmBooking = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem('token');
 
       if (!token) {
         Alert.alert('Lỗi', 'Vui lòng đăng nhập để tiếp tục');
@@ -122,13 +122,12 @@ export default function BookingStep3() {
       const result = await response.json();
       console.log('Booking created successfully:', result);
 
-      // Show success modal
+      // hiển thị modal thành công
       setShowSuccessModal(true);
 
-      // If prepaid, navigate to payment page
+      // nếu thanh toán trước, điều hướng đến trang thanh toán
       if (paymentMethod === 'prepaid' && result.data?.paymentUrl) {
-        // TODO: Navigate to payment WebView
-        // For now, just show success
+      
       }
     } catch (error: any) {
       console.error('Error creating booking:', error);
@@ -141,28 +140,32 @@ export default function BookingStep3() {
     }
   };
 
-  // Handle success modal close
+// thành công modal đóng xử lý
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false);
-    // Navigate to booking history or home
+    // Navigate để đến lịch sử đặt chỗ
     router.replace('/(tabs)/booking');
   };
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-gradient-to-r from-purple-600 to-blue-600 pt-12 pb-6 px-4">
+      <View className="bg-white pt-12 pb-6 px-4 border-b border-gray-200">
         <View className="flex-row items-center mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-white/20 rounded-full p-2 mr-3"
+            className="bg-gray-100 rounded-full p-2 mr-3"
             disabled={loading}
           >
-            <ArrowLeft size={24} color="#FFF" />
+            <ArrowLeft size={24} color="#000" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-white font-bold text-xl">Đặt chỗ - Bước 3/3</Text>
-            <Text className="text-white/80 text-sm">Thanh toán & xác nhận</Text>
+            <View className="flex-row items-center mb-1">
+              <View className="bg-black rounded px-2 py-1 mr-2">
+                <Text className="text-white font-bold text-xs">BƯỚC 3/3</Text>
+              </View>
+            </View>
+            <Text className="text-gray-900 font-bold text-xl">Thanh toán & xác nhận</Text>
           </View>
         </View>
       </View>
@@ -176,19 +179,19 @@ export default function BookingStep3() {
 
           {/* Parking lot info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <MapPin size={20} color="#8B5CF6" />
+            <MapPin size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Bãi đỗ xe</Text>
-              <Text className="text-gray-800 font-semibold">{parkingLotName}</Text>
+              <Text className="text-gray-900 font-semibold">{parkingLotName}</Text>
             </View>
           </View>
 
           {/* Slot info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <ParkingSquare size={20} color="#8B5CF6" />
+            <ParkingSquare size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Chỗ đỗ</Text>
-              <Text className="text-gray-800 font-semibold">
+              <Text className="text-gray-900 font-semibold">
                 {slotNumber} - {zoneName}
               </Text>
             </View>
@@ -196,10 +199,10 @@ export default function BookingStep3() {
 
           {/* Vehicle info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <Car size={20} color="#8B5CF6" />
+            <Car size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Xe</Text>
-              <Text className="text-gray-800 font-semibold">
+              <Text className="text-gray-900 font-semibold">
                 {licensePlate} ({vehicleType})
               </Text>
             </View>
@@ -207,14 +210,14 @@ export default function BookingStep3() {
 
           {/* Time info */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <Calendar size={20} color="#8B5CF6" />
+            <Calendar size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Thời gian</Text>
-              <Text className="text-gray-800 font-semibold">
+              <Text className="text-gray-900 font-semibold">
                 {formatDateTime(startTime)}
               </Text>
               <Text className="text-gray-500 text-sm mt-1">đến</Text>
-              <Text className="text-gray-800 font-semibold">
+              <Text className="text-gray-900 font-semibold">
                 {formatDateTime(endTime)}
               </Text>
             </View>
@@ -222,19 +225,19 @@ export default function BookingStep3() {
 
           {/* Duration */}
           <View className="flex-row items-start mb-3 pb-3 border-b border-gray-100">
-            <Clock size={20} color="#8B5CF6" />
+            <Clock size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Thời lượng</Text>
-              <Text className="text-gray-800 font-semibold">{getDuration()} giờ</Text>
+              <Text className="text-gray-900 font-semibold">{getDuration()} giờ</Text>
             </View>
           </View>
 
           {/* Price info */}
           <View className="flex-row items-start">
-            <DollarSign size={20} color="#8B5CF6" />
+            <DollarSign size={20} color="#000" />
             <View className="flex-1 ml-3">
               <Text className="text-gray-500 text-xs mb-1">Tổng tiền</Text>
-              <Text className="text-purple-600 font-bold text-2xl">
+              <Text className="text-gray-900 font-bold text-2xl">
                 {parseInt(estimatedPrice).toLocaleString('vi-VN')}đ
               </Text>
             </View>
@@ -250,24 +253,24 @@ export default function BookingStep3() {
           {/* Pay at parking */}
           <TouchableOpacity
             onPress={() => setPaymentMethod('cash')}
-            className={`mb-3 p-4 rounded-xl border-2 flex-row items-center ${
+            className={`mb-3 p-4 rounded-lg border-2 flex-row items-center ${
               paymentMethod === 'cash'
-                ? 'bg-purple-50 border-purple-600'
-                : 'bg-gray-50 border-gray-200'
+                ? 'bg-green-50 border-green-400'
+                : 'bg-white border-gray-300'
             }`}
           >
             <View
               className={`rounded-full p-3 ${
-                paymentMethod === 'cash' ? 'bg-purple-600' : 'bg-gray-300'
+                paymentMethod === 'cash' ? 'bg-green-400' : 'bg-gray-200'
               }`}
             >
-              <Wallet size={24} color={paymentMethod === 'cash' ? '#FFF' : '#6B7280'} />
+              <Wallet size={24} color={paymentMethod === 'cash' ? '#FFF' : '#000'} />
             </View>
 
             <View className="flex-1 ml-4">
               <Text
                 className={`font-bold text-base ${
-                  paymentMethod === 'cash' ? 'text-purple-700' : 'text-gray-800'
+                  paymentMethod === 'cash' ? 'text-green-700' : 'text-gray-900'
                 }`}
               >
                 Thanh toán tại bãi
@@ -278,7 +281,7 @@ export default function BookingStep3() {
             </View>
 
             {paymentMethod === 'cash' && (
-              <View className="bg-purple-600 rounded-full p-1">
+              <View className="bg-green-400 rounded-full p-1">
                 <Text className="text-white text-xs font-bold px-2">✓</Text>
               </View>
             )}
@@ -287,27 +290,27 @@ export default function BookingStep3() {
           {/* Prepaid */}
           <TouchableOpacity
             onPress={() => setPaymentMethod('prepaid')}
-            className={`p-4 rounded-xl border-2 flex-row items-center ${
+            className={`p-4 rounded-lg border-2 flex-row items-center ${
               paymentMethod === 'prepaid'
-                ? 'bg-purple-50 border-purple-600'
-                : 'bg-gray-50 border-gray-200'
+                ? 'bg-green-50 border-green-400'
+                : 'bg-white border-gray-300'
             }`}
           >
             <View
               className={`rounded-full p-3 ${
-                paymentMethod === 'prepaid' ? 'bg-purple-600' : 'bg-gray-300'
+                paymentMethod === 'prepaid' ? 'bg-green-400' : 'bg-gray-200'
               }`}
             >
               <CreditCard
                 size={24}
-                color={paymentMethod === 'prepaid' ? '#FFF' : '#6B7280'}
+                color={paymentMethod === 'prepaid' ? '#FFF' : '#000'}
               />
             </View>
 
             <View className="flex-1 ml-4">
               <Text
                 className={`font-bold text-base ${
-                  paymentMethod === 'prepaid' ? 'text-purple-700' : 'text-gray-800'
+                  paymentMethod === 'prepaid' ? 'text-green-700' : 'text-gray-900'
                 }`}
               >
                 Thanh toán trước
@@ -321,7 +324,7 @@ export default function BookingStep3() {
             </View>
 
             {paymentMethod === 'prepaid' && (
-              <View className="bg-purple-600 rounded-full p-1">
+              <View className="bg-green-400 rounded-full p-1">
                 <Text className="text-white text-xs font-bold px-2">✓</Text>
               </View>
             )}
@@ -354,8 +357,8 @@ export default function BookingStep3() {
         <TouchableOpacity
           onPress={handleConfirmBooking}
           disabled={loading}
-          className={`rounded-2xl py-4 px-6 ${
-            loading ? 'bg-gray-300' : 'bg-gradient-to-r from-purple-600 to-blue-600'
+          className={`rounded-lg py-4 px-6 ${
+            loading ? 'bg-gray-300' : 'bg-black'
           }`}
           activeOpacity={0.8}
         >

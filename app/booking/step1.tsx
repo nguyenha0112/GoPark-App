@@ -29,7 +29,7 @@ export default function BookingStep1() {
     parkingLotName: string;
   }>();
 
-  // Date and time states
+  // trạng thái ngày giờ
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)); // +2 hours
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -37,14 +37,14 @@ export default function BookingStep1() {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
-  // Parking lot and slots data
+  // Dữ liệu bãi đỗ và chỗ đỗ
   const [parkingLot, setParkingLot] = useState<any>(null);
   const [availableSlots, setAvailableSlots] = useState<ParkingSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Fetch parking lot details
+  // Fetch data của bãi
   useEffect(() => {
     const loadParkingLot = async () => {
       try {
@@ -62,7 +62,7 @@ export default function BookingStep1() {
     loadParkingLot();
   }, [parkingLotId]);
 
-  // Fetch available slots when dates change
+  // Fetch chỗ đỗ khả dụng khi ngày giờ thay đổi
   useEffect(() => {
     const loadAvailableSlots = async () => {
       if (!parkingLotId || !startDate || !endDate) return;
@@ -83,18 +83,18 @@ export default function BookingStep1() {
       }
     };
 
-    // Only load slots if end date is after start date
+    // chỉ tải chỗ đỗ nếu thời gian kết thúc sau thời gian bắt đầu
     if (endDate > startDate) {
       loadAvailableSlots();
     }
   }, [parkingLotId, startDate, endDate]);
 
-  // Date picker handlers
+  // DateTimePicker (chọn ngày giờ)
   const onStartDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowStartDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setStartDate(selectedDate);
-      // Auto-adjust end date if it's before start date
+      // tự động điều chỉnh thời gian kết thúc nếu nó trước thời gian bắt đầu
       if (endDate <= selectedDate) {
         setEndDate(new Date(selectedDate.getTime() + 2 * 60 * 60 * 1000));
       }
@@ -105,7 +105,7 @@ export default function BookingStep1() {
     setShowStartTimePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setStartDate(selectedDate);
-      // Auto-adjust end date if it's before start date
+      // tự động điều chỉnh thời gian kết thúc nếu nó trước thời gian bắt đầu
       if (endDate <= selectedDate) {
         setEndDate(new Date(selectedDate.getTime() + 2 * 60 * 60 * 1000));
       }
@@ -134,7 +134,7 @@ export default function BookingStep1() {
     }
   };
 
-  // Calculate duration and price
+  // Tính toán thời gian và giá ước tính
   const getDuration = () => {
     const diffMs = endDate.getTime() - startDate.getTime();
     const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
@@ -144,7 +144,7 @@ export default function BookingStep1() {
   const getEstimatedPrice = () => {
     if (!parkingLot) return 0;
     const duration = getDuration();
-    // Use slot's pricePerHour if available, otherwise use parking lot's base price
+    // Giá ước tính = Thời gian * Giá theo giờ
     const pricePerHour = selectedSlot?.pricePerHour || parkingLot.pricePerHour;
     return Math.round(pricePerHour * duration);
   };
@@ -161,7 +161,7 @@ export default function BookingStep1() {
       return;
     }
 
-    // Navigate to step 2 with selected data
+    // Chuyển sang bước tiếp theo với các tham số cần thiết
     router.push({
       pathname: '/booking/step2',
       params: {
@@ -215,26 +215,38 @@ export default function BookingStep1() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-gradient-to-r from-purple-600 to-blue-600 pt-12 pb-6 px-4">
+      <View className="bg-white pt-12 pb-6 px-4 border-b border-gray-200">
         <View className="flex-row items-center mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-white/20 rounded-full p-2 mr-3"
+            className="bg-gray-100 rounded-full p-2 mr-3"
           >
-            <ArrowLeft size={24} color="#FFF" />
+            <ArrowLeft size={24} color="#000" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-white font-bold text-xl">Đặt chỗ - Bước 1/3</Text>
-            <Text className="text-white/80 text-sm">Chọn thời gian & chỗ đỗ</Text>
+            <View className="flex-row items-center mb-1">
+              <View className="bg-black rounded px-2 py-1 mr-2">
+                <Text className="text-white font-bold text-xs">BƯỚC 1/3</Text>
+              </View>
+            </View>
+            <Text className="text-gray-900 font-bold text-xl">Chọn thời gian & chỗ đỗ</Text>
+          </View>
+          <View className="bg-gray-100 rounded-full p-2">
+            <Calendar size={24} color="#000" />
           </View>
         </View>
 
         {/* Parking lot info */}
-        <View className="bg-white/20 rounded-xl p-3 flex-row items-center">
-          <MapPin size={20} color="#FFF" />
-          <Text className="text-white font-semibold text-base ml-2 flex-1" numberOfLines={1}>
-            {parkingLotName || parkingLot?.name}
-          </Text>
+        <View className="bg-gray-50 rounded-lg p-3 flex-row items-center border border-gray-200">
+          <View className="bg-gray-200 rounded-full p-2 mr-3">
+            <MapPin size={20} color="#000" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-gray-500 text-xs mb-1">Bãi đỗ xe</Text>
+            <Text className="text-gray-900 font-semibold text-base" numberOfLines={1}>
+              {parkingLotName || parkingLot?.name}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -251,17 +263,17 @@ export default function BookingStep1() {
             <View className="flex-row space-x-2">
               <TouchableOpacity
                 onPress={() => setShowStartDatePicker(true)}
-                className="flex-1 flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200"
+                className="flex-1 flex-row items-center bg-white rounded-lg p-3 border border-gray-300"
               >
-                <Calendar size={20} color="#8B5CF6" />
+                <Calendar size={20} color="#000" />
                 <Text className="text-gray-700 ml-2">{formatDate(startDate)}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setShowStartTimePicker(true)}
-                className="flex-1 flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200"
+                className="flex-1 flex-row items-center bg-white rounded-lg p-3 border border-gray-300 ml-2"
               >
-                <Clock size={20} color="#8B5CF6" />
+                <Clock size={20} color="#000" />
                 <Text className="text-gray-700 ml-2">{formatTime(startDate)}</Text>
               </TouchableOpacity>
             </View>
@@ -273,25 +285,25 @@ export default function BookingStep1() {
             <View className="flex-row space-x-2">
               <TouchableOpacity
                 onPress={() => setShowEndDatePicker(true)}
-                className="flex-1 flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200"
+                className="flex-1 flex-row items-center bg-white rounded-lg p-3 border border-gray-300"
               >
-                <Calendar size={20} color="#8B5CF6" />
+                <Calendar size={20} color="#000" />
                 <Text className="text-gray-700 ml-2">{formatDate(endDate)}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setShowEndTimePicker(true)}
-                className="flex-1 flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200"
+                className="flex-1 flex-row items-center bg-white rounded-lg p-3 border border-gray-300 ml-2"
               >
-                <Clock size={20} color="#8B5CF6" />
+                <Clock size={20} color="#000" />
                 <Text className="text-gray-700 ml-2">{formatTime(endDate)}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Duration display */}
-          <View className="mt-4 bg-purple-50 rounded-xl p-3">
-            <Text className="text-purple-800 font-semibold">
+          <View className="mt-4 bg-gray-100 rounded-lg p-3 border border-gray-300">
+            <Text className="text-gray-800 font-semibold">
               Thời gian: {getDuration()} giờ • Ước tính: {getEstimatedPrice().toLocaleString('vi-VN')}đ
             </Text>
           </View>
@@ -323,15 +335,15 @@ export default function BookingStep1() {
                     <TouchableOpacity
                       key={slot._id}
                       onPress={() => setSelectedSlot(slot)}
-                      className={`m-1 px-4 py-3 rounded-xl border-2 ${
+                      className={`m-1 px-4 py-3 rounded-lg border-2 ${
                         selectedSlot?._id === slot._id
-                          ? 'bg-purple-100 border-purple-600'
-                          : 'bg-gray-50 border-gray-200'
+                          ? 'bg-green-400 border-green-600'
+                          : 'bg-white border-gray-300'
                       }`}
                     >
                       <Text
                         className={`font-semibold ${
-                          selectedSlot?._id === slot._id ? 'text-purple-700' : 'text-gray-700'
+                          selectedSlot?._id === slot._id ? 'text-white' : 'text-gray-700'
                         }`}
                       >
                         {slot.slotNumber}
@@ -350,9 +362,9 @@ export default function BookingStep1() {
         <TouchableOpacity
           onPress={handleNext}
           disabled={!selectedSlot || loadingSlots}
-          className={`rounded-2xl py-4 px-6 ${
+          className={`rounded-lg py-4 px-6 ${
             selectedSlot && !loadingSlots
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600'
+              ? 'bg-black'
               : 'bg-gray-300'
           }`}
           activeOpacity={0.8}

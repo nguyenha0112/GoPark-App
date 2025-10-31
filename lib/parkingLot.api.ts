@@ -125,7 +125,6 @@ export const fetchParkingLotById = async (id: string): Promise<ParkingLot> => {
     }
 
     const result: ApiResponse<ParkingLot> = await response.json();
-    console.log('✅ Parking lot detail:', result.status);
     
     if (result.status === 'success') {
       return result.data;

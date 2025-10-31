@@ -36,23 +36,23 @@ export default function ParkingMapView({
     }
   }, [userLocation]);
 
-  // Calculate total slots for marker label
+  // tổng chỗ đỗ
   const getTotalSlots = (zones: Array<{ zone: string; count: number }>) => {
     return zones.reduce((total, zone) => total + zone.count, 0);
   };
 
   return (
-    <View className="flex-1 rounded-2xl overflow-hidden">
+    <View className="flex-1">
       <MapView
         provider={PROVIDER_GOOGLE}
-        className="flex-1"
+        style={{ flex: 1 }}
         region={region}
         onRegionChangeComplete={setRegion}
         showsUserLocation={true}
         showsMyLocationButton={true}
         showsCompass={true}
         loadingEnabled={true}
-        loadingIndicatorColor="#3B82F6"
+        loadingIndicatorColor="#22c55e"
       >
         {parkingLots.map((lot) => (
           <Marker
@@ -65,8 +65,8 @@ export default function ParkingMapView({
             title={lot.name}
             description={`${getTotalSlots(lot.zones)} chỗ đỗ • ${lot.pricePerHour.toLocaleString('vi-VN')}đ/giờ`}
           >
-            <View className="bg-purple-600 rounded-full p-2 shadow-lg">
-              <MapPin size={24} color="#FFF" />
+            <View className="bg-green-500 rounded-full p-2 shadow-lg">
+              <MapPin size={20} color="#FFF" />
             </View>
           </Marker>
         ))}

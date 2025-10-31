@@ -16,8 +16,8 @@ export default function SearchBar({
   placeholder = "Tìm kiếm bãi đỗ xe..."
 }: SearchBarProps) {
   return (
-    <View className="flex-row items-center bg-white rounded-2xl px-4 py-3 shadow-md">
-      <Search size={20} color="#9CA3AF" />
+    <View className="flex-row items-center bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+      <Search size={20} color="#6B7280" />
       <TextInput
         className="flex-1 ml-3 text-base text-gray-800"
         placeholder={placeholder}
@@ -27,13 +27,15 @@ export default function SearchBar({
         onSubmitEditing={onSearch}
         returnKeyType="search"
       />
-      <TouchableOpacity
-        onPress={onSearch}
-        className="bg-blue-600 rounded-full p-2"
-        activeOpacity={0.8}
-      >
-        <ArrowRight size={18} color="#FFF" />
-      </TouchableOpacity>
+      {value.length > 0 && (
+        <TouchableOpacity
+          onPress={() => onChangeText('')}
+          className="bg-gray-200 rounded-full p-1.5"
+          activeOpacity={0.7}
+        >
+          <ArrowRight size={16} color="#6B7280" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

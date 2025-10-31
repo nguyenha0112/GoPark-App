@@ -25,8 +25,9 @@ import Constants from 'expo-constants';
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://192.168.1.8:5000';
 
 export default function Booking() {
+  // trạng thái
   const router = useRouter();
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -40,12 +41,12 @@ export default function Booking() {
       const token = await AsyncStorage.getItem('authToken');
 
       if (!token) {
-        // If not logged in, show empty state
+        // nếu không có token, không tải được đặt chỗ
         setBookings([]);
         setLoading(false);
         return;
       }
-
+      // Fetch bookings từ API
       const response = await fetch(`${API_BASE_URL}/api/v1/bookings/my-bookings`, {
         method: 'GET',
         headers: {
@@ -68,13 +69,13 @@ export default function Booking() {
       setLoading(false);
     }
   };
-
+  // Làm mới danh sách đặt chỗ
   const onRefresh = async () => {
     setRefreshing(true);
     await loadBookings();
     setRefreshing(false);
   };
-
+// Định dạng ngày giờ
   const formatDateTime = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleString('vi-VN', {
@@ -85,7 +86,7 @@ export default function Booking() {
       minute: '2-digit',
     });
   };
-
+// Cấu hình trạng thái đặt chỗ
   const getStatusConfig = (status) => {
     switch (status) {
       case 'confirmed':
@@ -125,12 +126,12 @@ export default function Booking() {
         };
     }
   };
-
+// Xử lý đặt chỗ mới
   const handleNewBooking = () => {
-    // Navigate to home page to select parking lot
+    // Navigate để chọn bãi đỗ xe
     router.push('/(tabs)/home');
   };
-
+// Xử lý xem chi tiết đặt chỗ
   const handleBookingDetail = (booking) => {
     // TODO: Navigate to booking detail page
     Alert.alert('Chi tiết đặt chỗ', `Booking ID: ${booking._id}`);

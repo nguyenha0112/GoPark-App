@@ -14,7 +14,7 @@ export default function ParkingDetailHeader({ parkingLot }: ParkingDetailHeaderP
 
   return (
     <View className="bg-white">
-      {/* Image Carousel */}
+      {/* hình ảnh */}
       <View>
         {parkingLot.avtImage ? (
           <Image
@@ -28,7 +28,7 @@ export default function ParkingDetailHeader({ parkingLot }: ParkingDetailHeaderP
           </View>
         )}
         
-        {/* Status Badge */}
+        {/* trạng thái */}
         {parkingLot.isActive && (
           <View className="absolute top-4 right-4 bg-green-500 rounded-full px-3 py-1.5">
             <Text className="text-white text-xs font-semibold">Đang hoạt động</Text>

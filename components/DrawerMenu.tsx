@@ -10,8 +10,9 @@ import {
   LogOut,
   X,
   ChevronRight,
+  Lock,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -22,6 +23,7 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
+import { BASE_URL } from "@/lib/api";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
@@ -34,6 +36,9 @@ interface DrawerMenuProps {
 export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
   const router = useRouter();
   const slideAnim = React.useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  const [userName, setUserName] = useState('GoPark User');
+  const [userEmail, setUserEmail] = useState('user@gopark.vn');
+  const [userRole, setUserRole] = useState('user');
 
   React.useEffect(() => {
     if (isVisible) {
@@ -42,6 +47,7 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
         duration: 300,
         useNativeDriver: true,
       }).start();
+      loadUserInfo();
     } else {
       Animated.timing(slideAnim, {
         toValue: -DRAWER_WIDTH,
@@ -50,6 +56,34 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
       }).start();
     }
   }, [isVisible]);
+
+  const loadUserInfo = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const role = await AsyncStorage.getItem('role');
+      
+      if (role) {
+        setUserRole(role);
+      }
+
+      if (token) {
+        const response = await fetch(`${BASE_URL}/api/v1/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUserName(userData.userName || 'GoPark User');
+          setUserEmail(userData.email || 'user@gopark.vn');
+        }
+      }
+    } catch (error) {
+      console.log('Error loading user info:', error);
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
@@ -74,38 +108,51 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
     {
       icon: User,
       label: "Hồ sơ của tôi",
-      route: "/(tabs)/profie",
-      color: "#3B82F6",
+      route: "/profile",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
     },
     {
       icon: Car,
       label: "Xe của tôi",
       route: "/vehicles",
-      color: "#10B981",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
     },
     {
       icon: MapPin,
       label: "Tìm bãi đỗ",
       route: "/(tabs)/home",
-      color: "#8B5CF6",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
     },
     {
       icon: History,
       label: "Lịch sử đặt chỗ",
       route: "/(tabs)/history",
-      color: "#F59E0B",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
+    },
+    {
+      icon: Lock,
+      label: "Đổi mật khẩu",
+      route: "/change-password",
+      color: "#6B7280",
+      bgColor: "#F3F4F6",
     },
     {
       icon: Settings,
       label: "Cài đặt",
       route: "/settings",
       color: "#6B7280",
+      bgColor: "#F3F4F6",
     },
     {
       icon: HelpCircle,
       label: "Trợ giúp & Hỗ trợ",
       route: "/help",
-      color: "#06B6D4",
+      color: "#3B82F6",
+      bgColor: "#EFF6FF",
     },
   ];
 
@@ -141,7 +188,7 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <View className="bg-gradient-to-r from-blue-600 to-indigo-600 pt-14 pb-8 px-6">
+            <View className="bg-green-500 pt-14 pb-8 px-6">
               <TouchableOpacity
                 onPress={onClose}
                 className="self-end mb-4 bg-white/20 rounded-full p-2"
@@ -149,42 +196,53 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
                 <X size={24} color="#FFF" />
               </TouchableOpacity>
 
-              <View className="flex-row items-center gap-4">
-                <View className="w-16 h-16 rounded-full bg-white/20 items-center justify-center">
-                  <Text className="text-white text-2xl font-bold">GP</Text>
+              <TouchableOpacity
+                onPress={() => handleNavigate('/profile')}
+                activeOpacity={0.8}
+              >
+                <View className="flex-row items-center gap-4">
+                  <View className="w-16 h-16 rounded-full bg-white items-center justify-center shadow-lg">
+                    <User size={32} color="#22c55e" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white text-xl font-bold">
+                      {userName}
+                    </Text>
+                    <Text className="text-white/90 text-sm mb-1">
+                      {userEmail}
+                    </Text>
+                    <View className="bg-white/20 px-2 py-1 rounded-full self-start">
+                      <Text className="text-white text-xs font-semibold">
+                        {userRole === 'user' ? '👤 Người dùng' : userRole === 'owner' ? '🏢 Chủ bãi' : '👑 Admin'}
+                      </Text>
+                    </View>
+                  </View>
+                  <ChevronRight size={20} color="#FFF" />
                 </View>
-                <View className="flex-1">
-                  <Text className="text-white text-xl font-bold">
-                    GoPark User
-                  </Text>
-                  <Text className="text-white/80 text-sm">
-                    user@gopark.vn
-                  </Text>
-                </View>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Menu Items */}
-            <View className="py-4">
+            <View className="py-2">
               {menuItems.map((item, index) => {
                 const IconComponent = item.icon;
                 return (
                   <TouchableOpacity
                     key={index}
                     onPress={() => handleNavigate(item.route)}
-                    className="flex-row items-center px-6 py-4 active:bg-gray-100"
+                    className="flex-row items-center px-6 py-3 active:bg-gray-50"
                     activeOpacity={0.7}
                   >
                     <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-4"
-                      style={{ backgroundColor: item.color + "20" }}
+                      className="w-11 h-11 rounded-xl items-center justify-center mr-3"
+                      style={{ backgroundColor: item.bgColor }}
                     >
-                      <IconComponent size={20} color={item.color} />
+                      <IconComponent size={22} color={item.color} />
                     </View>
                     <Text className="flex-1 text-gray-800 text-base font-medium">
                       {item.label}
                     </Text>
-                    <ChevronRight size={20} color="#9CA3AF" />
+                    <ChevronRight size={18} color="#9CA3AF" />
                   </TouchableOpacity>
                 );
               })}
@@ -196,24 +254,27 @@ export default function DrawerMenu({ isVisible, onClose }: DrawerMenuProps) {
             {/* Logout */}
             <TouchableOpacity
               onPress={handleLogout}
-              className="flex-row items-center px-6 py-4 active:bg-red-50"
+              className="flex-row items-center px-6 py-4 mx-4 my-4 bg-red-50 rounded-xl border border-red-200 active:bg-red-100"
               activeOpacity={0.7}
             >
-              <View className="w-10 h-10 rounded-full bg-red-50 items-center justify-center mr-4">
+              <View className="w-11 h-11 rounded-xl bg-red-100 items-center justify-center mr-3">
                 <LogOut size={20} color="#EF4444" />
               </View>
-              <Text className="flex-1 text-red-600 text-base font-semibold">
+              <Text className="flex-1 text-red-600 text-base font-bold">
                 Đăng xuất
               </Text>
+              <ChevronRight size={18} color="#EF4444" />
             </TouchableOpacity>
 
             {/* Footer */}
-            <View className="px-6 py-8 mt-auto">
+            <View className="px-6 pb-8 pt-4">
+              <View className="bg-gray-50 rounded-lg p-3 mb-2">
+                <Text className="text-gray-600 text-xs text-center font-semibold">
+                  GoPark - Đặt chỗ đỗ xe thông minh
+                </Text>
+              </View>
               <Text className="text-gray-400 text-xs text-center">
-                GoPark v1.0.0
-              </Text>
-              <Text className="text-gray-400 text-xs text-center mt-1">
-                © 2025 All rights reserved
+                Version 1.0.0 © 2025
               </Text>
             </View>
           </ScrollView>

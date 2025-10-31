@@ -12,7 +12,7 @@ export default function BookingCTA({ parkingLotId, parkingLotName }: BookingCTAP
   const router = useRouter();
 
   const handleBooking = () => {
-    // Navigate to booking flow with parking lot info
+    // Navigate để tới bước đặt chỗ với thông tin bãi đỗ
     router.push({
       pathname: '/booking/step1',
       params: {
