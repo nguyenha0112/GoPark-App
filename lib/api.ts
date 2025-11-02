@@ -1,7 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Thay bằng IP LAN máy bạn
-export const BASE_URL = "http://192.168.2.17:5000"; // ví dụ: 192.168.2.17   cấp phát động *********
+// Thay bằng IP LAN máy bạn ví dụ: 192.168.2.17   cấp phát động *********
+//mạng trọ
+// export const BASE_URL = "http://192.168.2.17:5000";
+
+//mạng hòa khánh
+export const BASE_URL = "http://172.25.27.4:5000";
 
 // Helper fetch có JWT
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {

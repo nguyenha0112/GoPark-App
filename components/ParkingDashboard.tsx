@@ -182,9 +182,7 @@ export function ParkingDashboardScreen({
             </View>
 
             {/* Action Buttons */}
-            <Text className="text-sm font-semibold text-gray-700 mb-3">
-              Hành động nhanh
-            </Text>
+
             <View className="flex-row gap-3">
               <TouchableOpacity
                 className="flex-1 bg-green-500 rounded-2xl py-4 flex-row items-center justify-center"
