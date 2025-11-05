@@ -1,8 +1,18 @@
 import { loginUser } from "@/lib/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Lock, Mail } from "lucide-react-native";
+import { Car, Lock, Mail } from "lucide-react-native";
 import React, { useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export type UserRole = "user" | "owner";
 
@@ -17,7 +27,6 @@ export default function LoginForm({
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("user");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
@@ -39,11 +48,9 @@ export default function LoginForm({
 
   const handleLogin = async () => {
     if (!validate()) return;
-
     setLoading(true);
     try {
       const data = await loginUser(email, password);
-
       const token = data?.token;
       const role = data?.data?.user?.role as UserRole;
       const userId = data?.data?.user?._id;
@@ -53,115 +60,145 @@ export default function LoginForm({
         return;
       }
 
-      if (role !== selectedRole) {
-        Alert.alert(
-          "Lỗi",
-          `Vai trò không đúng. Bạn chọn: ${selectedRole}, nhưng server trả: ${role}`
-        );
-        return;
-      }
-
       await AsyncStorage.setItem("token", token);
       await AsyncStorage.setItem("role", role);
       await AsyncStorage.setItem("userId", userId);
 
       onLoginSuccess(role, email);
     } catch (err: any) {
-      console.log("Login error:", err.message);
       Alert.alert("Lỗi", err.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
   };
 
-  const roleButtons: { label: string; value: UserRole }[] = [
-    { label: "Người dùng", value: "user" },
-    { label: "Chủ bãi", value: "owner" },
-  ];
-
   return (
-    <View className="flex-1 justify-start pt-20 p-4 bg-gray-50">
-      <View className="mb-6 items-center">
-        <Text className="text-2xl font-bold text-black mb-1">Đăng nhập</Text>
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        showsVerticalScrollIndicator={false}
+        className="bg-white"
+      >
+        {/* Header */}
+        <View className="items-center mb-10 mt-8">
+          <View className="w-20 h-20 bg-blue-100 rounded-3xl items-center justify-center mb-3 shadow-sm">
+            <Car color="#2563EB" size={36} strokeWidth={2.2} />
+          </View>
+          <Text className="text-3xl font-extrabold text-blue-600 mb-1">
+            GoPark
+          </Text>
+          <Text className="text-gray-500 text-sm">
+            Quản lý bãi đỗ xe thông minh
+          </Text>
+        </View>
 
-      <View className="flex-row justify-between mb-4">
-        {roleButtons.map((role) => (
-          <TouchableOpacity
-            key={role.value}
-            onPress={() => setSelectedRole(role.value)}
-            className={`flex-1 py-3 mx-1 rounded-xl border-2 items-center justify-center ${
-              selectedRole === role.value
-                ? "border-black bg-gray-200"
-                : "border-gray-300 bg-white"
-            }`}
-          >
-            <Text
-              className={`font-medium ${
-                selectedRole === role.value ? "text-black" : "text-gray-600"
+        {/* Form */}
+        <View className="bg-white mx-6 rounded-3xl p-6 shadow-md border border-gray-100">
+          {/* Email */}
+          <View className="mb-5">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">
+              Email
+            </Text>
+            <View
+              className={`flex-row items-center bg-gray-50 rounded-2xl px-4 h-14 border ${
+                errors.email ? "border-red-400" : "border-gray-200"
               }`}
             >
-              {role.label}
+              <Mail color={errors.email ? "#EF4444" : "#9CA3AF"} size={20} />
+              <TextInput
+                className="ml-3 flex-1 text-gray-900 text-base"
+                placeholder="example@gopark.vn"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) setErrors({ ...errors, email: undefined });
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            {errors.email && (
+              <Text className="text-red-500 text-xs mt-2 ml-1">
+                {errors.email}
+              </Text>
+            )}
+          </View>
+
+          {/* Password */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">
+              Mật khẩu
+            </Text>
+            <View
+              className={`flex-row items-center bg-gray-50 rounded-2xl px-4 h-14 border ${
+                errors.password ? "border-red-400" : "border-gray-200"
+              }`}
+            >
+              <Lock color={errors.password ? "#EF4444" : "#9CA3AF"} size={20} />
+              <TextInput
+                className="ml-3 flex-1 text-gray-900 text-base"
+                placeholder="••••••••"
+                placeholderTextColor="#9CA3AF"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password)
+                    setErrors({ ...errors, password: undefined });
+                }}
+                secureTextEntry
+              />
+            </View>
+            {errors.password && (
+              <Text className="text-red-500 text-xs mt-2 ml-1">
+                {errors.password}
+              </Text>
+            )}
+          </View>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+            className={`w-full h-14 rounded-2xl items-center justify-center mb-4 ${
+              loading ? "bg-gray-400" : "bg-blue-600"
+            }`}
+            style={{
+              shadowColor: "#2563EB",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: loading ? 0 : 0.25,
+              shadowRadius: 8,
+              elevation: loading ? 0 : 4,
+            }}
+          >
+            <Text className="text-white font-bold text-base tracking-wide">
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      <View className="mb-3">
-        <Text className="text-sm font-medium mb-1 text-black">Email</Text>
-        <View className="flex-row items-center border border-gray-300 rounded-xl px-3 h-12">
-          <Mail color="#9CA3AF" size={18} />
-          <TextInput
-            className="ml-2 flex-1 text-black"
-            placeholder="example@gopark.vn"
-            placeholderTextColor="#9CA3AF"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          {/* Register link */}
+          <View className="flex-row justify-center items-center mt-2">
+            <Text className="text-gray-600 text-sm">Chưa có tài khoản? </Text>
+            <TouchableOpacity onPress={onNavigateToRegister}>
+              <Text className="text-blue-600 font-semibold text-sm">
+                Đăng ký ngay
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        {errors.email && (
-          <Text className="text-red-500 text-xs mt-1">{errors.email}</Text>
-        )}
-      </View>
 
-      <View className="mb-3">
-        <Text className="text-sm font-medium mb-1 text-black">Mật khẩu</Text>
-        <View className="flex-row items-center border border-gray-300 rounded-xl px-3 h-12">
-          <Lock color="#9CA3AF" size={18} />
-          <TextInput
-            className="ml-2 flex-1 text-black"
-            placeholder="••••••••"
-            placeholderTextColor="#9CA3AF"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+        {/* Footer */}
+        <View className="mt-10 mb-8 items-center">
+          <Text className="text-gray-400 text-xs">
+            © 2024 GoPark. All rights reserved.
+          </Text>
         </View>
-        {errors.password && (
-          <Text className="text-red-500 text-xs mt-1">{errors.password}</Text>
-        )}
-      </View>
-
-      <TouchableOpacity
-        onPress={handleLogin}
-        disabled={loading}
-        className={`w-full h-12 rounded-xl items-center justify-center mb-3 mt-2 ${
-          loading ? "bg-gray-400" : "bg-black"
-        }`}
-      >
-        <Text className="text-white font-medium text-base">
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-        </Text>
-      </TouchableOpacity>
-
-      <View className="flex-row justify-center mt-3">
-        <Text className="text-gray-600 mr-1">Chưa có tài khoản?</Text>
-        <TouchableOpacity onPress={onNavigateToRegister}>
-          <Text className="text-black font-semibold">Đăng ký ngay</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

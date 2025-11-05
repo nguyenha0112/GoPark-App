@@ -5,7 +5,8 @@ import Constants from "expo-constants";
 // Android Emulator: http://10.0.2.2:5000
 // iOS Simulator: http://localhost:5000
 // Physical Device: http://YOUR_LOCAL_IP:5000
-export const BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || "http://localhost:5000";
+// local của nguyên 192.168.1.194
+export const BASE_URL = "http://192.168.1.194:5000";
 
 // Debug log để kiểm tra
 console.log("🔗 API BASE_URL:", BASE_URL);
