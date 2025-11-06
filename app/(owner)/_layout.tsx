@@ -29,13 +29,6 @@ export default function OwnerLayout() {
             href: null, // Ẩn luôn tab
           }}
         />
-        <Tabs.Screen
-          name="addParkingLotPage"
-          options={{
-            title: "Thêm bãi đỗ",
-            href: null, // Ẩn luôn tab
-          }}
-        />
       </Tabs>
     </SafeAreaView>
   );

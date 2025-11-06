@@ -1,13 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,33 +15,119 @@ import {
 } from "react-native";
 import { createParkingLot } from "../lib/parkingLot.api";
 
-interface Props {
-  onSuccess: () => void;
-}
+export default function AddParkingLotForm({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    street: "",
+    district: "",
+    city: "",
+    description: "",
+    pricePerHour: "",
+    latitude: "21.028511",
+    longitude: "105.854444",
+  });
 
-export const AddParkingLotForm: React.FC<Props> = ({ onSuccess }) => {
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [totalSlots, setTotalSlots] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState<string[]>(["prepaid"]);
+  const [zoneCount, setZoneCount] = useState(1);
+  const [zones, setZones] = useState([{ zone: "A", count: 10 }]);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const togglePayment = (method: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(method)
+        ? prev.filter((m) => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  const handleChange = (key: string, val: string) => {
+    setForm((prev) => ({ ...prev, [key]: val }));
+  };
+
+  const pickImage = async (isAvatar = false) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: !isAvatar,
+      quality: 0.8,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+
+    if (!result.canceled) {
+      if (isAvatar) {
+        setAvatar(result.assets[0].uri);
+      } else {
+        const selected = result.assets.map((a) => a.uri);
+        setImages((prev) => [...prev, ...selected]);
+      }
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleZoneCount = (count: number) => {
+    const newZones = [];
+    for (let i = 0; i < count; i++) {
+      const zoneName = String.fromCharCode(65 + i);
+      newZones.push({
+        zone: zoneName,
+        count: zones[i]?.count || 10,
+      });
+    }
+    setZoneCount(count);
+    setZones(newZones);
+  };
+
   const handleSubmit = async () => {
-    if (!name || !address || !city || !totalSlots) {
-      Alert.alert("Thiếu thông tin", "Vui lòng điền đầy đủ các trường!");
+    if (!form.name || !form.street || !form.city || !form.pricePerHour) {
+      Alert.alert(
+        "Thiếu thông tin",
+        "Vui lòng nhập đầy đủ các trường bắt buộc!"
+      );
       return;
     }
 
     try {
       setLoading(true);
-      await createParkingLot({
-        name,
-        address,
-        city,
-        totalSlots: Number(totalSlots),
+      const payload = {
+        name: form.name.trim(),
+        address: `${form.street}, ${form.district}, ${form.city}`,
+        description: form.description || "Không có mô tả",
+        city: form.city.trim(),
+        pricePerHour: Number(form.pricePerHour),
+        zones,
+        allowedPaymentMethods: paymentMethods,
+        totalSlots: zones.reduce((acc, z) => acc + z.count, 0),
+        location: {
+          type: "Point",
+          coordinates: [Number(form.longitude), Number(form.latitude)],
+        },
+      };
+
+      await createParkingLot(payload);
+      Alert.alert("✅ Thành công", "Đã tạo bãi đỗ xe mới!");
+      setForm({
+        name: "",
+        street: "",
+        district: "",
+        city: "",
+        description: "",
+        pricePerHour: "",
+        latitude: "21.028511",
+        longitude: "105.854444",
       });
-      Alert.alert("🎉 Thành công", "Đã tạo bãi đỗ mới!");
-      onSuccess();
+      setPaymentMethods(["prepaid"]);
+      setZoneCount(1);
+      setZones([{ zone: "A", count: 10 }]);
+      setAvatar(null);
+      setImages([]);
+      if (onSuccess) onSuccess();
     } catch (error: any) {
       Alert.alert("❌ Lỗi", error.message || "Không thể tạo bãi đỗ");
     } finally {
@@ -51,112 +137,382 @@ export const AddParkingLotForm: React.FC<Props> = ({ onSuccess }) => {
 
   return (
     <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "white" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
     >
-      <StatusBar barStyle="light-content" />
-      <LinearGradient
-        colors={["#2563eb", "#1e40af"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="flex-1"
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 20 }}
+        contentContainerStyle={{ paddingBottom: 60 }}
       >
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "700",
+            color: "#2563EB",
+            marginVertical: 20,
+            textAlign: "center",
+          }}
         >
-          {/* Header */}
-          <View className="px-6 pt-14 pb-8">
-            <Text className="text-3xl font-bold text-white">
-              Thêm bãi đỗ mới
-            </Text>
-            <Text className="text-blue-100 mt-2">
-              Nhập thông tin chi tiết cho bãi đỗ của bạn
-            </Text>
+          🅿️ Tạo bãi đỗ xe mới
+        </Text>
+
+        {/* --- Thông tin cơ bản --- */}
+        <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
+          Thông tin cơ bản
+        </Text>
+        {[
+          { key: "name", label: "Tên bãi đỗ" },
+          { key: "street", label: "Đường" },
+          { key: "district", label: "Quận / Huyện" },
+          { key: "city", label: "Thành phố" },
+          { key: "pricePerHour", label: "Giá mỗi giờ (VND)", type: "numeric" },
+        ].map((f) => (
+          <View key={f.key} style={{ marginBottom: 12 }}>
+            <Text style={{ color: "#333", marginBottom: 6 }}>{f.label}</Text>
+            <TextInput
+              value={form[f.key as keyof typeof form]}
+              onChangeText={(v) => handleChange(f.key, v)}
+              keyboardType={f.type as any}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 10,
+                padding: 10,
+                backgroundColor: "#F9FAFB",
+              }}
+            />
           </View>
+        ))}
 
-          {/* Form container */}
-          <View className="flex-1 bg-gray-50 rounded-t-3xl px-6 pt-8 pb-10 -mt-6">
-            <View className="bg-white p-6 rounded-3xl shadow-lg">
-              {[
-                {
-                  label: "Tên bãi đỗ",
-                  value: name,
-                  set: setName,
-                  placeholder: "Ví dụ: Bãi A1 Nguyễn Trãi",
-                },
-                {
-                  label: "Địa chỉ",
-                  value: address,
-                  set: setAddress,
-                  placeholder: "Số 123 Nguyễn Trãi, Q.5",
-                },
-                {
-                  label: "Thành phố",
-                  value: city,
-                  set: setCity,
-                  placeholder: "TP. Hồ Chí Minh",
-                },
-              ].map((field, index) => (
-                <View key={index} className="mb-5">
-                  <Text className="text-gray-700 mb-2 font-semibold">
-                    {field.label}
-                  </Text>
-                  <TextInput
-                    placeholder={field.placeholder}
-                    value={field.value}
-                    onChangeText={field.set}
-                    className="border border-gray-300 rounded-xl px-4 py-3 text-base bg-gray-50"
-                    placeholderTextColor="#9ca3af"
-                  />
-                </View>
-              ))}
+        {/* --- Tọa độ --- */}
+        <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
+          Tọa độ (Latitude / Longitude)
+        </Text>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <TextInput
+            value={form.latitude}
+            onChangeText={(v) => handleChange("latitude", v)}
+            placeholder="Vĩ độ"
+            keyboardType="numeric"
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 10,
+              padding: 10,
+              backgroundColor: "#F9FAFB",
+            }}
+          />
+          <TextInput
+            value={form.longitude}
+            onChangeText={(v) => handleChange("longitude", v)}
+            placeholder="Kinh độ"
+            keyboardType="numeric"
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 10,
+              padding: 10,
+              backgroundColor: "#F9FAFB",
+            }}
+          />
+        </View>
 
-              {/* Tổng số chỗ */}
-              <View className="mb-7">
-                <Text className="text-gray-700 mb-2 font-semibold">
-                  Tổng số chỗ
-                </Text>
-                <TextInput
-                  placeholder="Ví dụ: 50"
-                  value={totalSlots}
-                  onChangeText={setTotalSlots}
-                  keyboardType="numeric"
-                  className="border border-gray-300 rounded-xl px-4 py-3 text-base bg-gray-50"
-                  placeholderTextColor="#9ca3af"
-                />
-              </View>
+        {/* --- Mô tả --- */}
+        <View style={{ marginTop: 16 }}>
+          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
+            Mô tả (tuỳ chọn)
+          </Text>
+          <TextInput
+            value={form.description}
+            onChangeText={(v) => handleChange("description", v)}
+            multiline
+            numberOfLines={4}
+            placeholder="Nhập mô tả bãi đỗ xe..."
+            style={{
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 10,
+              padding: 10,
+              backgroundColor: "#F9FAFB",
+              textAlignVertical: "top",
+            }}
+          />
+        </View>
 
-              {/* Nút tạo */}
+        {/* --- Khu vực --- */}
+        <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 12 }}>
+          Khu vực (Zones)
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ flex: 1, fontSize: 16 }}>Số khu vực:</Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 8,
+              backgroundColor: "#F9FAFB",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                if (zoneCount > 1) handleZoneCount(zoneCount - 1);
+              }}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 18, color: "#2563EB" }}>－</Text>
+            </TouchableOpacity>
+
+            <Text
+              style={{
+                width: 40,
+                textAlign: "center",
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
+              {zoneCount}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => handleZoneCount(zoneCount + 1)}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 18, color: "#2563EB" }}>＋</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {zones.map((z, i) => (
+          <View
+            key={z.zone}
+            style={{
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              borderRadius: 12,
+              padding: 12,
+              marginBottom: 10,
+            }}
+          >
+            <Text style={{ fontWeight: "600", marginBottom: 6 }}>
+              Khu vực {z.zone}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 10,
+                backgroundColor: "#F9FAFB",
+                marginBottom: 6,
+              }}
+            >
               <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={loading}
-                activeOpacity={0.85}
-                className={`${
-                  loading ? "bg-gray-400" : "bg-blue-600"
-                } rounded-xl py-4 flex-row items-center justify-center shadow-md`}
+                onPress={() => {
+                  const updated = [...zones];
+                  if (updated[i].count > 1) {
+                    updated[i].count -= 1;
+                    setZones(updated);
+                  }
+                }}
+                style={{ paddingHorizontal: 12, paddingVertical: 6 }}
               >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="add-circle-outline"
-                      size={22}
-                      color="white"
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text className="text-white text-lg font-semibold">
-                      Tạo bãi đỗ
-                    </Text>
-                  </>
-                )}
+                <Text style={{ fontSize: 18, color: "#2563EB" }}>－</Text>
+              </TouchableOpacity>
+
+              <Text
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              >
+                {z.count}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  const updated = [...zones];
+                  updated[i].count += 1;
+                  setZones(updated);
+                }}
+                style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+              >
+                <Text style={{ fontSize: 18, color: "#2563EB" }}>＋</Text>
               </TouchableOpacity>
             </View>
+
+            <View
+              style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 8 }}
+            >
+              {Array.from({ length: z.count }).map((_, idx) => (
+                <View
+                  key={idx}
+                  style={{
+                    backgroundColor: "#DBEAFE",
+                    borderRadius: 6,
+                    paddingHorizontal: 6,
+                    paddingVertical: 4,
+                    margin: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, color: "#1E40AF" }}>
+                    {z.zone}
+                    {idx + 1}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </ScrollView>
-      </LinearGradient>
+        ))}
+
+        {/* --- Phương thức thanh toán --- */}
+        <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
+          Phương thức thanh toán
+        </Text>
+        {[
+          { label: "Trả trước (Prepaid)", value: "prepaid" },
+          { label: "Trả tại bãi (Pay at parking)", value: "pay-at-parking" },
+        ].map((m) => (
+          <TouchableOpacity
+            key={m.value}
+            onPress={() => togglePayment(m.value)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                marginRight: 10,
+                borderWidth: 2,
+                borderColor: "#1E3A8A",
+                borderRadius: 4,
+                backgroundColor: paymentMethods.includes(m.value)
+                  ? "#2563EB"
+                  : "white",
+              }}
+            />
+            <Text>{m.label}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* --- Ảnh --- */}
+        <Text style={{ fontSize: 18, fontWeight: "600", marginVertical: 10 }}>
+          Hình ảnh
+        </Text>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <TouchableOpacity
+            onPress={() => pickImage(true)}
+            style={{
+              flex: 1,
+              padding: 12,
+              backgroundColor: "#E0F2FE",
+              borderRadius: 10,
+              alignItems: "center",
+            }}
+          >
+            <Text>🖼️ Ảnh đại diện</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => pickImage(false)}
+            style={{
+              flex: 1,
+              padding: 12,
+              backgroundColor: "#E0F2FE",
+              borderRadius: 10,
+              alignItems: "center",
+            }}
+          >
+            <Text>📷 Thêm ảnh bãi</Text>
+          </TouchableOpacity>
+        </View>
+
+        {avatar && (
+          <View style={{ marginTop: 10, alignItems: "center" }}>
+            <Image
+              source={{ uri: avatar }}
+              style={{ width: 100, height: 100, borderRadius: 10 }}
+            />
+            <Text style={{ fontSize: 12, color: "#555" }}>Ảnh đại diện</Text>
+          </View>
+        )}
+
+        {images.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginTop: 10 }}
+          >
+            {images.map((uri, i) => (
+              <TouchableOpacity key={i} onPress={() => removeImage(i)}>
+                <Image
+                  source={{ uri }}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: 10,
+                    marginRight: 10,
+                  }}
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* --- Submit --- */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={loading}
+          style={{ marginTop: 30 }}
+        >
+          <LinearGradient
+            colors={["#2563EB", "#60A5FA"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              paddingVertical: 14,
+              borderRadius: 12,
+              alignItems: "center",
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "700",
+                  fontSize: 16,
+                }}
+              >
+                🚗 Tạo bãi đỗ xe
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
-};
+}

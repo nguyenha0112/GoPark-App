@@ -1,13 +1,14 @@
+// app/owner/add-parking-lot/index.tsx
 import { useRouter } from "expo-router";
 import React from "react";
 import { SafeAreaView, View } from "react-native";
-import { AddParkingLotForm } from "../../components/AddParkingLotForm";
+import AddParkingLotForm from "../../components/AddParkingLotForm";
 
 export default function AddParkingLotPage() {
   const router = useRouter();
 
   const handleSuccess = () => {
-    router.back(); // quay lại trang danh sách
+    router.back(); // ✅ Quay lại trang danh sách sau khi tạo thành công
   };
 
   return (
