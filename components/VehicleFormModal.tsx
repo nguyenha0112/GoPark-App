@@ -9,8 +9,11 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { X, Upload, Camera } from 'lucide-react-native';
+import { X, Upload, Camera, Check, Info } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '@/lib/api';
@@ -243,138 +246,194 @@ export default function VehicleFormModal({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl" style={{ maxHeight: '90%' }}>
-          <View className="flex-row items-center justify-between p-6 border-b border-gray-200">
-            <Text className="text-xl font-bold text-gray-900">
-              {vehicle ? 'Sửa thông tin xe' : 'Thêm xe mới'}
-            </Text>
-            <TouchableOpacity onPress={onClose} className="p-2">
-              <X size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View 
+            className="bg-white rounded-t-3xl"
+            style={{ maxHeight: '90%' }}
+          >
+            {/* Header */}
+            <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
+              <Text className="text-xl font-bold text-gray-900">
+                {vehicle ? 'Sửa thông tin xe' : 'Thêm xe mới'}
+              </Text>
+              <TouchableOpacity 
+                onPress={onClose} 
+                className="p-2 bg-gray-100 rounded-full"
+              >
+                <X size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView className="p-6" showsVerticalScrollIndicator={false}>
-            {/* Image Upload */}
-            <View className="mb-6">
-              <Text className="text-gray-700 font-semibold mb-2">Ảnh xe</Text>
-              {imageUri ? (
-                <View className="relative">
-                  <Image
-                    source={{ uri: imageUri }}
-                    className="w-full h-48 rounded-lg"
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setImageUri('');
-                      setImageFile(null);
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 rounded-full p-2"
-                  >
-                    <X size={16} color="#FFF" />
-                  </TouchableOpacity>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ 
+                padding: 20,
+                paddingBottom: 32,
+              }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Image Upload Section */}
+              <View className="mb-5">
+                <Text className="text-gray-700 font-semibold text-base mb-3">Ảnh xe</Text>
+                {imageUri ? (
+                  <View className="relative rounded-2xl overflow-hidden">
+                    <Image
+                      source={{ uri: imageUri }}
+                      className="w-full h-56"
+                      resizeMode="cover"
+                    />
+                    <View className="absolute bottom-3 right-3 flex-row gap-2">
+                      <TouchableOpacity
+                        onPress={() => {
+                          setImageUri('');
+                          setImageFile(null);
+                        }}
+                        className="bg-red-500 rounded-full p-2.5"
+                      >
+                        <X size={18} color="#FFF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={showImagePickerOptions}
+                        className="bg-green-500 rounded-full p-2.5"
+                      >
+                        <Camera size={18} color="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
                   <TouchableOpacity
                     onPress={showImagePickerOptions}
-                    className="absolute bottom-2 right-2 bg-green-500 rounded-full p-2"
+                    className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl h-56 items-center justify-center"
+                    activeOpacity={0.7}
                   >
-                    <Camera size={16} color="#FFF" />
+                    <View className="bg-green-100 p-4 rounded-full mb-3">
+                      <Upload size={32} color="#10B981" />
+                    </View>
+                    <Text className="text-gray-700 font-semibold text-base">Chọn ảnh xe</Text>
+                    <Text className="text-gray-500 text-sm mt-1">Chụp ảnh hoặc chọn từ thư viện</Text>
                   </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={showImagePickerOptions}
-                  className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg h-48 items-center justify-center"
-                >
-                  <Upload size={40} color="#9CA3AF" />
-                  <Text className="text-gray-500 mt-2">Chọn ảnh xe</Text>
-                  <Text className="text-gray-400 text-xs mt-1">Chụp ảnh hoặc chọn từ thư viện</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* License Plate */}
-            <View className="mb-4">
-              <Text className="text-gray-700 font-semibold mb-2">Biển số xe *</Text>
-              <TextInput
-                value={licensePlate}
-                onChangeText={setLicensePlate}
-                placeholder="VD: 30A-12345 hoặc 43A-12345"
-                className="bg-gray-50 px-4 py-3 rounded-lg text-gray-900 border border-gray-200"
-                autoCapitalize="characters"
-              />
-            </View>
-
-            {/* Capacity */}
-            <View className="mb-4">
-              <Text className="text-gray-700 font-semibold mb-2">Sức chứa (số chỗ) *</Text>
-              <View className="flex-row gap-2 mb-2">
-                {[2, 4, 5, 7].map((num) => (
-                  <TouchableOpacity
-                    key={num}
-                    onPress={() => setCapacity(num)}
-                    className={`flex-1 py-3 rounded-lg border-2 ${
-                      capacity === num
-                        ? 'bg-green-50 border-green-500'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <Text
-                      className={`text-center font-semibold ${
-                        capacity === num ? 'text-green-700' : 'text-gray-600'
-                      }`}
-                    >
-                      {num}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TextInput
-                value={capacity.toString()}
-                onChangeText={(text) => {
-                  const num = parseInt(text);
-                  if (!isNaN(num) && num > 0) setCapacity(num);
-                }}
-                placeholder="Hoặc nhập số khác"
-                keyboardType="number-pad"
-                className="bg-gray-50 px-4 py-3 rounded-lg text-gray-900 border border-gray-200"
-              />
-            </View>
-
-            {/* Info Box */}
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-              <Text className="text-blue-800 text-sm">
-                ℹ️ Bạn có thể đăng ký tối đa 3 phương tiện
-              </Text>
-            </View>
-
-            {/* Buttons */}
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={onClose}
-                className="flex-1 bg-gray-100 py-4 rounded-lg"
-              >
-                <Text className="text-gray-700 font-semibold text-center">Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={saving || uploading}
-                className={`flex-1 py-4 rounded-lg ${
-                  saving || uploading ? 'bg-gray-400' : 'bg-green-500'
-                }`}
-              >
-                {saving || uploading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text className="text-white font-semibold text-center">
-                    {vehicle ? 'Cập nhật' : 'Thêm xe'}
-                  </Text>
                 )}
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
+              </View>
+
+              {/* License Plate Input */}
+              <View className="mb-5">
+                <Text className="text-gray-700 font-semibold text-base mb-2">
+                  Biển số xe <Text className="text-red-500">*</Text>
+                </Text>
+                <TextInput
+                  value={licensePlate}
+                  onChangeText={setLicensePlate}
+                  placeholder="VD: 30A-12345 hoặc 43A-12345"
+                  placeholderTextColor="#9CA3AF"
+                  className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-base"
+                  autoCapitalize="characters"
+                />
+              </View>
+
+              {/* Capacity Selection */}
+              <View className="mb-5">
+                <Text className="text-gray-700 font-semibold text-base mb-3">
+                  Sức chứa (số chỗ) <Text className="text-red-500">*</Text>
+                </Text>
+                
+                {/* Quick Select Buttons */}
+                <View className="flex-row gap-2.5 mb-3">
+                  {[2, 4, 5, 7].map((num) => (
+                    <TouchableOpacity
+                      key={num}
+                      onPress={() => setCapacity(num)}
+                      className={`flex-1 py-3.5 rounded-xl border-2 ${
+                        capacity === num
+                          ? 'bg-green-500 border-green-500'
+                          : 'bg-white border-gray-200'
+                      }`}
+                      activeOpacity={0.7}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Text
+                          className={`font-bold text-lg ${
+                            capacity === num ? 'text-white' : 'text-gray-700'
+                          }`}
+                        >
+                          {num}
+                        </Text>
+                        {capacity === num && (
+                          <Check size={16} color="#FFF" strokeWidth={3} style={{ marginLeft: 4 }} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                
+                {/* Custom Input */}
+                <TextInput
+                  value={capacity.toString()}
+                  onChangeText={(text) => {
+                    const num = parseInt(text);
+                    if (!isNaN(num) && num > 0) setCapacity(num);
+                  }}
+                  placeholder="Hoặc nhập số chỗ khác"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-base"
+                />
+              </View>
+
+              {/* Info Box */}
+              <View className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <View className="flex-row items-start">
+                  <Info size={20} color="#3B82F6" className="mt-0.5" />
+                  <View className="flex-1 ml-3">
+                    <Text className="text-blue-900 font-semibold text-sm mb-2">
+                      Lưu ý
+                    </Text>
+                    <Text className="text-blue-800 text-xs leading-5">
+                      • Tối đa 3 phương tiện{'\n'}
+                      • Biển số phải chính xác{'\n'}
+                      • Ảnh xe giúp nhận diện dễ dàng
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="flex-1 bg-gray-100 py-3.5 rounded-lg active:bg-gray-200"
+                  activeOpacity={0.9}
+                >
+                  <Text className="text-gray-700 font-bold text-center text-base">Hủy</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={saving || uploading}
+                  className={`flex-1 py-3.5 rounded-lg ${
+                    saving || uploading ? 'bg-gray-400' : 'bg-green-500 active:bg-green-600'
+                  }`}
+                  activeOpacity={0.9}
+                >
+                  {saving || uploading ? (
+                    <View className="flex-row items-center justify-center">
+                      <ActivityIndicator size="small" color="#FFF" />
+                      <Text className="text-white font-bold ml-2">Đang lưu...</Text>
+                    </View>
+                  ) : (
+                    <Text className="text-white font-bold text-center text-base">
+                      {vehicle ? 'Cập nhật' : 'Thêm xe'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

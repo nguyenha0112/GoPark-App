@@ -1,12 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Home, Calendar, History, User } from 'lucide-react-native';
-import HeaderWithDrawer from '@/components/HeaderWithDrawer';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
+        // Toolbar removed per request: do not show a custom header here.
+        // Individual screens can still show their own headers via Stack.Screen.
+        headerShown: false,
         tabBarActiveTintColor: '#22c55e',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
@@ -21,7 +22,7 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: '600',
         },
-        header: () => <HeaderWithDrawer title="GoPark" showTitle={true} />,
+  // no custom header
       }}
     >
       <Tabs.Screen
@@ -52,7 +53,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profie"
+        name="profile"
         options={{
           title: 'Hồ sơ',
           tabBarIcon: ({ color, size }) => (
