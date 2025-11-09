@@ -255,6 +255,7 @@ export function ParkingDashboardScreen({
                       ? "bg-red-50 border-red-300"
                       : "bg-yellow-50 border-yellow-300"
                   }`}
+
                   activeOpacity={0.7}
                 >
                   <Car

@@ -44,6 +44,7 @@ export const MyParkingLotsScreen: React.FC<Props> = ({
         text: "Đăng xuất",
         style: "destructive",
         onPress: async () => {
+
           await AsyncStorage.multiRemove(["token", "role", "userId"]);
           onLogout();
         },
@@ -77,10 +78,10 @@ export const MyParkingLotsScreen: React.FC<Props> = ({
 
         {/* Nút đăng xuất */}
         <TouchableOpacity
+
           className="bg-blue-500/40 p-2 rounded-full"
-          activeOpacity={0.8}
           onPress={handleLogout}
-        >
+          className="flex-row items-center bg-purple-50 px-2.5 py-1.5 rounded-lg"
           <Ionicons name="log-out-outline" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -170,6 +171,7 @@ export const MyParkingLotsScreen: React.FC<Props> = ({
       <TouchableOpacity
         className="absolute bottom-8 right-6 bg-blue-600 w-14 h-14 rounded-full items-center justify-center shadow-lg"
         activeOpacity={0.9}
+
         onPress={onAddParkingLot}
         style={{
           shadowColor: "#2563EB",

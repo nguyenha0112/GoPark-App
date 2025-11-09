@@ -1,3 +1,4 @@
+
 // lib/parkingLot.api.ts
 import { fetchWithAuth } from "./api";
 

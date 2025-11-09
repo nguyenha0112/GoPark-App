@@ -1,7 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
-// 🏠 Thay bằng IP LAN máy bạn (đúng mạng đang chạy BE)
-export const BASE_URL = "http://192.168.2.17:5000";
+
+// Địa chỉ API động - cấu hình trong file .env
+// Android Emulator: http://10.0.2.2:5000
+// iOS Simulator: http://localhost:5000
+// Physical Device: http://YOUR_LOCAL_IP:5000
+export const BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || "http://localhost:5000";
+
+// Debug log để kiểm tra
+console.log("🔗 API BASE_URL:", BASE_URL);
+console.log("📦 Expo Config Extra:", Constants.expoConfig?.extra);
 
 // Helper fetch có JWT
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
